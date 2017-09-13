@@ -36,7 +36,7 @@ def findBlank_8p(state):
     index = state.index(0)
     sqrt = squareOfState(state)
 
-    position =  index % sqrt, int(index / sqrt)
+    position =  int(index / sqrt), index % sqrt
     return position
 
 def actionsF_8p_generator(state):
@@ -44,10 +44,10 @@ def actionsF_8p_generator(state):
     position = findBlank_8p(state)
     sqrt = int(math.sqrt(len(state)))
 
-    if position[0] != 0 : yield "left"
-    if position[0] != sqrt- 1: yield "right"
-    if position[1] != 0: yield "up"
-    if position[1] != sqrt - 1: yield "down"
+    if position[1] != 0 : yield "left"
+    if position[1] != sqrt- 1: yield "right"
+    if position[0] != 0: yield "up"
+    if position[0] != sqrt - 1: yield "down"
 
 def actionsF_8p(state):
     import math
@@ -56,10 +56,10 @@ def actionsF_8p(state):
     sqrt = int(math.sqrt(len(state)))
 
     actions = []
-    if position[0] != 0 : actions.append("left")
-    if position[0] != sqrt- 1: actions.append("right")
-    if position[1] != 0: actions.append("up")
-    if position[1] != sqrt - 1: actions.append("down")
+    if position[1] != 0 : actions.append("left")
+    if position[1] != sqrt- 1: actions.append("right")
+    if position[0] != 0: actions.append("up")
+    if position[0] != sqrt - 1: actions.append("down")
     return actions
 
 
@@ -76,13 +76,13 @@ def goalTest(state, testState):
 
 
 def legalAction(arrState, action, position, sqrt):
-    if action == "left" and position[0] == 0:
+    if action == "left" and position[1] == 0:
         return False
-    if action == "right" and position[0] == sqrt - 1:
+    if action == "right" and position[1] == sqrt - 1:
         return False
-    if action == "up" and position[1] == 0:
+    if action == "up" and position[0] == 0:
         return False
-    if action == "down" and position[1] == sqrt - 1:
+    if action == "down" and position[0] == sqrt - 1:
         return False
 
     return True
@@ -98,15 +98,15 @@ def takeActionF_8p(state, action):
     if not legalAction(arrState, action, position, sqrt):
         return "Could not move that direction"
 
-    if action == "left": return swap(arrState, position, (position[0] - 1, position[1]))
-    if action == "right": return swap(arrState, position, (position[0] + 1, position[1]))
-    if action == "up": return swap(arrState, position, (position[0], position[1] - 1))
-    if action == "down": return swap(arrState, position, (position[0], position[1] + 1))
+    if action == "left": return swap(arrState, position, (position[0], position[1]-1))
+    if action == "right": return swap(arrState, position, (position[0], position[1]+1))
+    if action == "up": return swap(arrState, position, (position[0] - 1, position[1]))
+    if action == "down": return swap(arrState, position, (position[0] + 1, position[1]))
 
 
 def swap(state, location1, location2):
-    state[location1[1]][location1[0]], state[location2[1]][location2[0]] = state[location2[1]][location2[0]], \
-                                                                           state[location1[1]][location1[0]]
+    state[location1[0]][location1[1]], state[location2[0]][location2[1]] = state[location2[0]][location2[1]], \
+                                                                           state[location1[0]][location1[1]]
     return list(state.flat)
 
 def depthLimitedSearch(startState, actionsF, takeActionF, goalState, depthLimit):
@@ -119,16 +119,14 @@ def depthLimitedSearch(startState, actionsF, takeActionF, goalState, depthLimit)
         cutoffOccurred = False
 
     for action in actionsF(startState):
-        #print("Action: " + action)
         childState = takeActionF(startState, action)
-        #printState(childState)
 
         result = depthLimitedSearch(childState, actionsF, takeActionF, goalState, depthLimit-1)
 
         if result is 'cutoff':
             cutoffOccurred = True
         elif result is not 'failure':
-            result.append(childState)
+            result.insert(0,childState)
             return result
 
     if cutoffOccurred:
@@ -152,12 +150,8 @@ def iterativeDeepeningSearch(startState, goalState, actionsF, takeActionF, maxDe
         if result is 'failure':
             return 'failure'
         if result is not 'cutoff':
-            # for oneresult in result:
-            #     solutionPath.append(oneresult)
-            # return solutionPath
-            result.append(startState)
-            #result.sort(reverse=True)
-            return result
+            solutionPath.extend(result)
+            return solutionPath
 
     return 'cutoff'
 
